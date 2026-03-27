@@ -1,0 +1,306 @@
+import { Alert, AlertIcon, Box, Spinner } from "@chakra-ui/react";
+import bcrypt from "bcryptjs";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { getRunningQueriesThunk } from "features/api";
+import {
+  getOrg,
+  GetOrgParams,
+  //getRunningQueriesThunk as orgApiThunk,
+  useGetOrgQuery,
+} from "features/api/orgsApi";
+import {
+  //getRunningQueriesThunk as userApiThunk,
+  getUser,
+  useGetUserQuery,
+} from "features/api/usersApi";
+import {
+  Column,
+  ContactLink,
+  EntityAddButton,
+  NotFound,
+} from "features/common";
+import { Layout } from "features/layout";
+import { OrgPage } from "features/orgs/OrgPage";
+import { OrgPageLogin } from "features/orgs/OrgPageLogin";
+import { UserPage } from "features/users/UserPage";
+import { useSession } from "hooks/useSession";
+import { PageProps } from "main";
+
+import { defaultTabs, EOrgType, IOrg } from "models/Org";
+
+import { IUser } from "models/User";
+import { wrapper } from "store";
+import { selectUserEmail } from "store/userSlice";
+import { normalize } from "utils/string";
+import { AppQuery, AppQueryWithData } from "utils/types";
+import { IEntity } from "models/Entity";
+
+const initialEventQueryParams = (entityUrl: string) => ({
+  eventUrl: entityUrl,
+  populate: "eventOrgs",
+});
+const initialOrgQueryParams = (entityUrl: string) => ({
+  orgUrl: entityUrl,
+  populate:
+    "orgBanner orgDescription orgEvents orgLogo orgProjects orgSubscriptions orgTopics orgs",
+});
+const initialUserQueryParams = (entityUrl: string) => ({
+  slug: entityUrl,
+});
+
+function getError(query: AppQuery<IEntity>) {
+  if (query.error) {
+    if (query.error.data) {
+      return query.error.data.message;
+    }
+
+    if (query.error.error) return query.error.error;
+  }
+}
+
+const ErrorPage = ({
+  query,
+  ...props
+}: PageProps & {
+  query: AppQuery<IEntity>;
+}) => {
+  const columnProps = {
+    maxWidth: "4xl",
+    m: "0 auto",
+    p: props.isMobile ? 2 : 3,
+  };
+  const error = getError(query);
+  return (
+    <Layout pageTitle="Erreur" {...props}>
+      <Column {...columnProps}>
+        <Box flexDir="row">
+          Une erreur est survenue,{" "}
+          <ContactLink label="merci de nous contacter" />
+        </Box>
+
+        {error && (
+          <Alert status="error">
+            <AlertIcon />
+            {error}
+          </Alert>
+        )}
+      </Column>
+    </Layout>
+  );
+};
+
+const HashPage = ({ ...props }: PageProps) => {
+  const columnProps = {
+    maxWidth: "4xl",
+    m: "0 auto",
+    p: props.isMobile ? 2 : 3,
+  };
+  const router = useRouter();
+  const { data: session } = useSession();
+  const userEmail = useSelector(selectUserEmail);
+  //const [isLoading, setIsLoading] = useState(props.isLoading && !!session);
+
+  //#region routing
+  let [entityUrl, currentTabLabel = "accueil", entityTabItem] =
+    "name" in router.query && Array.isArray(router.query.name)
+      ? router.query.name
+      : [];
+  //entityTabItem = entityUrl === "forum" ? entityTab : entityTabItem;
+  //#endregion
+
+  //#region queries
+  const [orgQueryParams, setOrgQueryParams] = useState<GetOrgParams>(
+    initialOrgQueryParams(entityUrl),
+  );
+  // const [userQueryParams, setUserQueryParams] = useState<UserQueryParams>(
+  //   initialUserQueryParams(entityUrl)
+  // );
+  const [skip, setSkip] = useState(false);
+  const orgQuery = useGetOrgQuery(orgQueryParams, { skip }) as AppQuery<IOrg>;
+  const userQuery = useGetUserQuery(
+    {
+      slug: entityUrl,
+      populate:
+        session?.user.userName === entityUrl ? "userProjects" : undefined,
+    },
+    { skip },
+  ) as AppQuery<IUser>;
+  const orgQueryStatus = orgQuery.error?.status || 200;
+  const userQueryStatus = userQuery.error?.status || 200;
+  //#endregion
+
+  //#region effects
+  // useEffect(() => {
+  //   if (
+  //     props.isLoading ||
+  //     (orgQuery.data &&
+  //       !orgQuery.data._id &&
+  //       session?.user.userId === getRefId(orgQuery.data))
+  //   ) {
+  //     orgQuery.refetch()
+  //   }
+  // }, []);
+  useEffect(
+    function onNavigate() {
+      if (entityUrl !== orgQueryParams.orgUrl) {
+        setOrgQueryParams({ ...orgQueryParams, orgUrl: entityUrl });
+        //setUserQueryParams({ ...userQueryParams, slug: entityUrl });
+      }
+    },
+    [entityUrl],
+  );
+  // useEffect(() => {
+  //   if (!orgQuery.data?._id) {
+  //     const isCreator = session?.user.userId === getRefId(orgQuery.data);
+
+  //     if (isCreator) {
+  //       orgQuery.refetch();
+  //     }
+  //   }
+  // }, []);
+  // useEffect(() => {
+  //   if (orgQuery.data?._id && isLoading) setIsLoading(false);
+  // }, [orgQuery.data]);
+  //#endregion
+
+  //#region rendering
+  if (orgQueryStatus === 404 && orgQueryParams.orgUrl === "forum") {
+    return (
+      <NotFound
+        {...props}
+        isRedirect={false}
+        message="Veuillez créer la planète forum."
+      >
+        <EntityAddButton
+          label={`Créer la planète « Forum »`}
+          orgName="Forum"
+          orgType={EOrgType.NETWORK}
+        />
+      </NotFound>
+    );
+  }
+
+  if (orgQueryStatus === 404 && userQueryStatus === 404) {
+    return <NotFound {...props} />;
+  }
+
+  if (userQuery.error && orgQuery.error) {
+    return <ErrorPage {...props} query={orgQuery} />;
+  }
+
+  if (userQuery.data && userQueryStatus === 200) {
+    return (
+      <UserPage {...props} userQuery={userQuery as AppQueryWithData<IUser>} />
+    );
+  }
+
+  if (userQuery.error && userQueryStatus !== 404 && orgQuery.error) {
+    return <ErrorPage {...props} query={userQuery} />;
+  }
+
+  if (orgQuery.data) {
+    if (orgQuery.data._id) {
+      return (
+        <OrgPage
+          {...props}
+          orgQuery={orgQuery as AppQueryWithData<IOrg>}
+          currentTabLabel={currentTabLabel}
+          tabItem={entityTabItem}
+        />
+      );
+    }
+
+    return (
+      <OrgPageLogin
+        {...props}
+        orgQuery={orgQuery as AppQueryWithData<IOrg>}
+        status={orgQueryStatus}
+        onSubmit={async (orgPassword) => {
+          const hash = bcrypt.hashSync(orgPassword, orgQuery.data!.orgSalt);
+          setOrgQueryParams({ ...orgQueryParams, hash });
+        }}
+      />
+    );
+  }
+
+  if (orgQuery.error && userQuery.error) {
+    return <ErrorPage {...props} query={orgQuery} />;
+  }
+  //#endregion
+
+  return (
+    <Layout {...props}>
+      <Column {...columnProps}>
+        <Spinner />
+      </Column>
+    </Layout>
+  );
+};
+
+export const getServerSideProps = wrapper.getServerSideProps(
+  (store) => async (ctx) => {
+    // console.log("🚀 ~ file: [...name].tsx:getServerSideProps ~ ctx.query:", ctx.query);
+    if (
+      Array.isArray(ctx.query.name) &&
+      typeof ctx.query.name[0] === "string"
+    ) {
+      const entityUrl = ctx.query.name[0];
+      const tabItem = ctx.query.name[1];
+
+      if (
+        ["api", "icons", "_next", "static"].includes(entityUrl) ||
+        entityUrl.includes(".xml") ||
+        entityUrl.includes(".txt") ||
+        entityUrl.includes(".js")
+      )
+        return { redirect: { permanent: false, destination: "/" } };
+
+      const normalizedEntityUrl = normalize(entityUrl);
+
+      // if (
+      //   entityUrl !== normalizedEntityUrl ||
+      //   (tabItem &&
+      //     !defaultTabs.find(({ url }) => url === "/" + normalize(tabItem)))
+      // )
+      if (entityUrl !== normalizedEntityUrl)
+        return {
+          redirect: {
+            permanent: false,
+            destination: "/" + normalizedEntityUrl,
+          },
+        };
+
+      // todo: pass ctx.req.headers.cookie
+      store.dispatch(getOrg.initiate(initialOrgQueryParams(entityUrl)));
+      store.dispatch(getUser.initiate(initialUserQueryParams(entityUrl)));
+      const [orgQuery, eventQuery, userQuery] = await Promise.all(
+        store.dispatch(getRunningQueriesThunk()),
+      );
+
+      //@ts-ignore
+      if (orgQuery.data?.redirectUrl) {
+        return {
+          redirect: {
+            permanent: false,
+            //@ts-ignore
+            destination: "/" + orgQuery.data.redirectUrl,
+          },
+        };
+      }
+
+      // if (typeof ctx.query.name[1] === "string") {
+      //   return {
+      //     props: { entityTab: ctx.query.name[1] }
+      //   };
+      // }
+    }
+
+    return { props: {} };
+  },
+);
+
+// export async function getServerSideProps( ctx: GetServerSidePropsContext): Promise<{ props?: {}; redirect?: { permanent: boolean; destination: string }; }> {}
+
+export default HashPage;

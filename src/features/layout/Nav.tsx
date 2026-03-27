@@ -1,0 +1,227 @@
+import { SearchIcon } from "@chakra-ui/icons";
+import {
+  Avatar,
+  Box,
+  BoxProps,
+  Flex,
+  Heading,
+  HStack,
+  IconButton,
+  Menu,
+  MenuButton,
+  Table,
+  Tbody,
+  Td,
+  Tooltip,
+  Tr,
+  useColorMode,
+} from "@chakra-ui/react";
+import { DarkModeSwitch, Delimiter, Link, LoginButton } from "features/common";
+import { OrgPopover, TopicPopover } from "features/layout";
+import { useSession } from "hooks/useSession";
+import { PageProps } from "main";
+import { IEntity } from "models/Entity";
+import { EOrgType } from "models/Org";
+import { useRouter } from "next/router";
+import React, { useState } from "react";
+import { FaHome } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import { selectUserEmail } from "store/userSlice";
+import { NavButtonsList } from "./NavButtonsList";
+import { NavMenuList } from "./NavMenuList";
+
+export interface NavProps {
+  entity?: IEntity;
+  pageTitle?: string;
+}
+
+export const Nav = ({
+  entity,
+  isMobile,
+  pageTitle,
+  ...props
+}: PageProps & BoxProps & NavProps) => {
+  const { colorMode } = useColorMode();
+  const isDark = colorMode === "dark";
+  const router = useRouter();
+  console.log("🚀 ~ router:", router.pathname);
+  const { data: session } = useSession();
+  const userEmail = useSelector(selectUserEmail);
+  const userName = session?.user.userName || "";
+  const [isNetworksModalOpen, setIsNetworksModalOpen] = useState(false);
+
+  const headingProps = {
+    _hover: {
+      color: "orange",
+    },
+  };
+
+  const iconProps = {
+    bg: isDark ? "teal.300" : "teal.500",
+    borderColor: isDark ? "gray.600" : "gray.200",
+    borderRadius: 9999,
+    borderStyle: "solid",
+    borderWidth: 1,
+    color: isDark ? "black" : "white",
+    mr: 3,
+    px: 5,
+    py: 6,
+    _hover: { bg: "blue.400", color: "white" },
+  };
+
+  return (
+    <Box as="nav" {...props}>
+      <Table role="navigation">
+        <Tbody role="rowgroup">
+          {!isMobile && (
+            <>
+              <Tr role="rowheader">
+                <Td border={0} p={0}>
+                  <HStack>
+                    <Heading {...headingProps}>
+                      <Link
+                        href="/"
+                        variant={
+                          router.pathname === "/" ? "underline" : undefined
+                        }
+                        shallow
+                      >
+                        <IconButton
+                          aria-label="Accueil"
+                          icon={<FaHome />}
+                          borderRadius={"9999px"}
+                          colorScheme={"red"}
+                          size="lg"
+                        />
+                      </Link>
+                    </Heading>
+                    {session && userEmail && (
+                      <Flex
+                        bg={isDark ? "gray.700" : "blackAlpha.50"}
+                        borderRadius="lg"
+                        width={isMobile ? undefined : "auto"}
+                        mb={isMobile ? 1 : 0}
+                        mt={isMobile ? undefined : 3}
+                      >
+                        <Menu>
+                          {/* <Tooltip
+                        label={`Connecté en tant que ${userEmail}`}
+                        placement="left"
+                      >
+                      </Tooltip> */}
+                          <MenuButton aria-label="Menu">
+                            <Avatar
+                              boxSize={12}
+                              bgColor={isDark ? undefined : "#2B6CB0"}
+                              color={isDark ? undefined : "white"}
+                              name={userName}
+                              src={
+                                session.user.userImage
+                                  ? session.user.userImage.base64
+                                  : undefined
+                              }
+                            />
+                          </MenuButton>
+
+                          <NavMenuList
+                            entity={entity}
+                            email={userEmail}
+                            //session={session}
+                            userName={userName}
+                          />
+                        </Menu>
+
+                        <OrgPopover
+                          label="Mes planètes"
+                          isMobile={isMobile}
+                          orgType={EOrgType.NETWORK}
+                          session={session}
+                          offset={[isMobile ? 80 : 140, 15]}
+                          iconProps={{ ...iconProps, ...{ ml: 3 } }}
+                        />
+                        <OrgPopover
+                          isMobile={isMobile}
+                          session={session}
+                          offset={[isMobile ? 20 : 140, 15]}
+                          iconProps={iconProps}
+                        />
+                        <TopicPopover
+                          isMobile={isMobile}
+                          session={session}
+                          offset={[isMobile ? -106 : 140, 15]}
+                          iconProps={iconProps}
+                        />
+                      </Flex>
+                    )}
+                  </HStack>
+                </Td>
+                <Td border={0} display="flex" justifyContent="flex-end" gap={3}>
+                  {/* <Tooltip label={`Rechercher`} hasArrow>
+                  <IconButton
+                    aria-label="Rechercher"
+                    icon={<SearchIcon />}
+                    colorScheme={"red"}
+                    borderRadius={"9999px"}
+                    onClick={() => {
+                      setIsNetworksModalOpen(true);
+                    }}
+                  />
+                </Tooltip> */}
+
+                  <Tooltip
+                    label={`Basculer vers le thème ${
+                      isDark ? "clair" : "sombre"
+                    }`}
+                    hasArrow
+                  >
+                    <Box>
+                      <DarkModeSwitch />
+                    </Box>
+                  </Tooltip>
+                </Td>
+              </Tr>
+
+              {/* Parcourir | Événements */}
+              {/* <Tr role="row">
+              <Td border={0} p={isMobile ? 0 : "16px 0 0 0"}>
+                <NavButtonsList
+                  isNetworksModalOpen={isNetworksModalOpen}
+                  onClose={() => {
+                    setIsNetworksModalOpen(false);
+                  }}
+                />
+              </Td>
+              {!session && router.pathname !== "/" && (
+                <Td border={0} p={0} textAlign="right">
+                  <LoginButton colorScheme="purple">Se connecter</LoginButton>
+                </Td>
+              )}
+            </Tr> */}
+            </>
+          )}
+
+          {isMobile && <></>}
+        </Tbody>
+      </Table>
+
+      {/*
+      {isMobile && !session && (
+        <LoginButton colorScheme="cyan" bg="lightcyan" mb={1}>
+          Se connecter
+        </LoginButton>
+      )}
+      */}
+
+      {/*
+      <Tr role="rowheader">
+        <Td border={0} lineHeight="auto" p={0} pl={2}>
+          <Flex alignItems="center">
+            <Icon as={FaUser} boxSize={7} mr={2} />
+            <Heading>{session.user.userName}</Heading>
+          </Flex>
+        </Td>
+      </Tr>
+      */}
+    </Box>
+  );
+};
