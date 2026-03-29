@@ -8,7 +8,7 @@ import {
   Spinner,
   Stack,
   Text,
-  useColorMode
+  useColorMode,
 } from "@chakra-ui/react";
 import { useToast } from "hooks/useToast";
 
@@ -25,7 +25,7 @@ import {
   Column,
   EmailControl,
   ErrorMessageText,
-  PasswordControl
+  PasswordControl,
 } from "features/common";
 import { SocialLogins } from "features/session/SocialLogins";
 import { useRouterLoading } from "hooks/useRouterLoading";
@@ -41,7 +41,7 @@ import { ErrorMessage } from "@hookform/error-message";
 const onLoginWithSocial = async (provider: OAuthProvider) => {
   await magic.oauth.loginWithRedirect({
     provider,
-    redirectURI: new URL("/callback", window.location.origin).href
+    redirectURI: new URL("/callback", window.location.origin).href,
   });
 };
 
@@ -59,7 +59,7 @@ export const LoginForm = ({
     data: session,
     loading: isSessionLoading,
     setSession,
-    setIsSessionLoading
+    setIsSessionLoading,
   } = useSession();
   const toast = useToast({ position: "top" });
   //const [postResetPasswordMail] = usePostResetPasswordMailMutation();
@@ -85,7 +85,7 @@ export const LoginForm = ({
     try {
       if (form.password) {
         const { data: user } = await dispatch(
-          getUser.initiate({ slug: form.email })
+          getUser.initiate({ slug: form.email }),
         );
 
         if (!user) throw new Error("Identifiants incorrects");
@@ -99,7 +99,7 @@ export const LoginForm = ({
           else
             toast({
               status: "error",
-              title: "L'adresse e-mail et le mot de passe ne correspondent pas"
+              title: "L'adresse e-mail et le mot de passe ne correspondent pas",
             });
 
           // todo: POST hash to /api/login
@@ -127,7 +127,7 @@ export const LoginForm = ({
       } else {
         await magic.auth.loginWithMagicLink({
           email: form.email,
-          redirectURI: new URL("/callback", window.location.origin).href
+          redirectURI: new URL("/callback", window.location.origin).href,
         });
       }
     } catch (error) {
@@ -138,7 +138,7 @@ export const LoginForm = ({
         console.log("🚀 ~ handleError ~ field:", field);
         setError(field || "formErrorMessage", {
           type: "manual",
-          message
+          message,
         });
       });
     }
@@ -152,7 +152,7 @@ export const LoginForm = ({
       </AppHeading>
 
       <form onChange={onChange} onSubmit={handleSubmit(onSubmit)}>
-        <Column borderRadius={isMobile ? 0 : undefined} mt={3} mb={5}>
+        {/* <Column borderRadius={isMobile ? 0 : undefined} mt={3} mb={5}>
           <Flex
             flexDirection="column"
             //width={isMobile ? "auto" : "md"}
@@ -223,7 +223,7 @@ export const LoginForm = ({
           >
             {isPassword ? "Se connecter" : "Envoyer un e-mail de connexion"}
           </Button>
-        </Column>
+        </Column> */}
 
         <Column borderRadius={isMobile ? 0 : undefined} pb={0}>
           <SocialLogins flexDirection="column" onSubmit={onLoginWithSocial} />

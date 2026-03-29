@@ -11,10 +11,10 @@ const CallbackPage = (props: PageProps) => {
   const isOffline = useSelector(selectIsOffline);
   const router = useRouter();
 
-  useEffect(() => {
-    console.log("🚀 ~ CallbackPage ~ isOffline:", isOffline);
-    if (isOffline) window.location.href = "/";
-  }, [isOffline]);
+  // useEffect(() => {
+  //   console.log("🚀 ~ CallbackPage ~ isOffline:", isOffline);
+  //   if (isOffline) window.location.href = "/";
+  // }, [isOffline]);
 
   useEffect(() => {
     (async function onRouterQueryChange() {
@@ -22,22 +22,23 @@ const CallbackPage = (props: PageProps) => {
         if (router.query.provider) {
           const result = await magic.oauth.getRedirectResult();
           const didToken = result.magic.idToken;
+          console.log("🚀 ~ CallbackPage ~ didToken:", didToken);
           await fetch("/api/login", {
             headers: {
               "Content-Type": "application/json",
-              Authorization: "Bearer " + didToken
-            }
+              Authorization: "Bearer " + didToken,
+            },
           });
           window.location.href = "/";
         } else if (typeof router.query.magic_credential === "string") {
           const didToken = await magic.auth.loginWithCredential(
-            router.query.magic_credential
+            router.query.magic_credential,
           );
           const response = await fetch("/api/login", {
             headers: {
               "Content-Type": "application/json",
-              Authorization: "Bearer " + didToken
-            }
+              Authorization: "Bearer " + didToken,
+            },
           });
           const json = await response.json();
           console.log("🚀 ~ CallbackPage ~ json:", json);

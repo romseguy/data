@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "(cd ../lbf-api && git com && pnpm start) & pnpm dev:server",
     "dev:server": "NODE_OPTIONS='max_old_space_size=4096' next",
-    "start": "NODE_OPTIONS='http-server-default-timeout=0' forever ./node_modules/.bin/next start -p 9000",
+    "start": "NODE_OPTIONS='http-server-default-timeout=0' ./node_modules/.bin/next start -p 9000",
     "prebuild": "kill-port --port 9000 && node ./maintenance.js &",
     "build": "next build",
     "postbuild": "kill-port --port 9000",
