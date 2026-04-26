@@ -282,7 +282,7 @@ export const OrgPageHomeTabPanel = ({
         </TabContainer>
       )}
 
-      {org.orgType === EOrgType.TREETOOLS && !org.orgLat && (
+      {/*{org.orgType === EOrgType.TREETOOLS && !org.orgLat && (
         <Alert status="info" mb={3}>
           <AlertIcon />
           <Text>
@@ -298,7 +298,7 @@ export const OrgPageHomeTabPanel = ({
             .
           </Text>
         </Alert>
-      )}
+      )}*/}
 
       <TabContainer borderBottomRadius={isInfoOpen ? undefined : "lg"}>
         <TabContainerHeader
@@ -377,7 +377,7 @@ export const OrgPageHomeTabPanel = ({
         )}
       </TabContainer>
 
-      {(orgNetworks.length > 0 ||
+      {/* {(orgNetworks.length > 0 ||
         (session && org.orgType === EOrgType.GENERIC)) && (
         <TabContainer>
           <TabContainerHeader
@@ -416,7 +416,7 @@ export const OrgPageHomeTabPanel = ({
             </Tooltip>
           </TabContainerContent>
         </TabContainer>
-      )}
+      )} */}
 
       <TabContainer
         borderBottomRadius={isDescriptionOpen ? undefined : "lg"}

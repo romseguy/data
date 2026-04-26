@@ -7,7 +7,7 @@ import {
   Text,
   IconButton,
   HStack,
-  Button
+  Button,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import React from "react";
@@ -75,7 +75,11 @@ export const TopicMessagesListItem = ({
       mb={3}
       data-cy="topic-message"
     >
-      <Flex alignItems="start" justifyContent="space-between">
+      <Flex
+        alignItems="start"
+        flexDir={isMobile ? "column" : "row"}
+        justifyContent="space-between"
+      >
         <Flex alignItems="center">
           <Flex
             alignItems="center"
@@ -114,7 +118,7 @@ export const TopicMessagesListItem = ({
                     if (_id)
                       setIsEdit({
                         ...isEdit,
-                        [_id]: { ...isEdit[_id], isOpen: true }
+                        [_id]: { ...isEdit[_id], isOpen: true },
                       });
                   }}
                 />
@@ -146,19 +150,19 @@ export const TopicMessagesListItem = ({
                               if (m._id === _id) {
                                 return {
                                   message: "<i>Message supprimé</i>",
-                                  createdBy
+                                  createdBy,
                                 };
                               }
 
                               return m;
-                            })
-                    }
+                            }),
+                    },
                   };
 
                   try {
                     await editTopic({
                       payload,
-                      topicId: topic._id
+                      topicId: topic._id,
                     }).unwrap();
 
                     _id && setIsLoading({ [_id]: false });
@@ -171,7 +175,7 @@ export const TopicMessagesListItem = ({
             </>
           )}
         </Flex>
-        <Flex flexDir="column">
+        <Flex flexDir="column" gap={isMobile ? 3 : 0}>
           {refs[index - 1] && (
             <Button
               aria-label="Message précédent"
@@ -209,7 +213,7 @@ export const TopicMessagesListItem = ({
             // __html: isMobile
             //   ? transformTopicMessage(sanitize(message))
             //   : sanitize(message)
-            __html: sanitize(message)
+            __html: sanitize(message),
           }}
         />
       </Box>
