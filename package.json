@@ -1,6 +1,5 @@
 {
   "name": "lbf",
-  "packageManager": "pnpm@8.15.9",
   "engines": {
     "node": ">=16"
   },

@@ -1,4 +1,4 @@
-import { AddIcon, CheckCircleIcon } from "@chakra-ui/icons";
+import { AddIcon, CheckCircleIcon, SmallAddIcon } from "@chakra-ui/icons";
 import {
   Alert,
   AlertIcon,
@@ -13,6 +13,7 @@ import {
   Spinner,
   Text,
   useColorMode,
+  VStack,
 } from "@chakra-ui/react";
 import { EditOrgPayload, useEditOrgMutation } from "features/api/orgsApi";
 import { AppHeading, Button } from "features/common";
@@ -205,8 +206,8 @@ export const TopicsList = ({
   //#endregion
 
   return (
-    <Flex {...props} flexDirection="column">
-      <Box>
+    <Box {...props}>
+      <VStack mb={5} alignItems="start">
         <Button
           colorScheme="teal"
           leftIcon={<AddIcon />}
@@ -215,11 +216,9 @@ export const TopicsList = ({
         >
           {addButtonLabel || "Ajouter une discussion"}
         </Button>
-      </Box>
 
-      {!!query.data && (
-        <HStack mb={5}>
-          <Box w="150px">
+        {!!query.data && (
+          <HStack>
             <Select
               defaultValue={defaultOrder}
               onChange={(e) => {
@@ -232,26 +231,27 @@ export const TopicsList = ({
               <option value={ETopicsListOrder.NEWEST}>Plus récent</option>
               <option value={ETopicsListOrder.OLDEST}>Plus ancien</option>
             </Select>
-          </Box>
-          {props.isCreator && (
-            <IconButton
-              aria-label="Sauvegarder"
-              icon={<CheckCircleIcon />}
-              onClick={async () => {
-                try {
-                  const payload: EditOrgPayload = {
-                    [isO ? "orgTopicOrder" : "eventTopicOrder"]: selectedOrder,
-                  };
-                  const res = await edit({
-                    [isO ? "orgId" : "entityId"]: entity._id,
-                    payload,
-                  }).unwrap();
-                } catch (error) {}
-              }}
-            />
-          )}
-        </HStack>
-      )}
+            {props.isCreator && (
+              <IconButton
+                aria-label="Sauvegarder"
+                icon={<CheckCircleIcon />}
+                onClick={async () => {
+                  try {
+                    const payload: EditOrgPayload = {
+                      [isO ? "orgTopicOrder" : "eventTopicOrder"]:
+                        selectedOrder,
+                    };
+                    const res = await edit({
+                      [isO ? "orgId" : "entityId"]: entity._id,
+                      payload,
+                    }).unwrap();
+                  } catch (error) {}
+                }}
+              />
+            )}
+          </HStack>
+        )}
+      </VStack>
 
       {!!query.data && (
         <Box
@@ -260,7 +260,7 @@ export const TopicsList = ({
             ? {}
             : { display: "flex", justifyContent: "space-between" })}
         >
-          {query.data && (props.isCreator || topicCategories.length > 0) && (
+          {(props.isCreator || topicCategories.length > 0) && (
             <Flex flexDirection="column" mb={3}>
               <AppHeading smaller>Catégories</AppHeading>
 
@@ -423,7 +423,7 @@ export const TopicsList = ({
           onClose={onClose}
         />
       )}
-    </Flex>
+    </Box>
   );
 };
 

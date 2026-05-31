@@ -123,6 +123,103 @@ handler.put<
   }
 });
 
+handler.delete<
+  NextApiRequest & {
+    query: { topicId: string };
+  },
+  NextApiResponse
+>(async function deleteTopic(req, res) {
+  const session = await getSession({ req });
+
+  if (!session) {
+    return res
+      .status(401)
+      .json(createEndpointError(new Error("Vous devez être identifié")));
+  }
+
+  try {
+    const topicId = req.query.topicId;
+    let topic = await models.Topic.findOne({ _id: topicId });
+
+    if (!topic) {
+      return res
+        .status(404)
+        .json(
+          createEndpointError(
+            new Error(`La discussion n'a pas pu être trouvée`),
+          ),
+        );
+    }
+
+    topic = await topic.populate("org event").execPopulate();
+    const isCreator = equals(
+      getRefId(topic.org || topic.event),
+      session.user.userId,
+    );
+    const isTopicCreator = equals(getRefId(topic), session.user.userId);
+
+    if (!isCreator && !isTopicCreator && !session.user.isAdmin)
+      return res
+        .status(403)
+        .json(
+          createEndpointError(
+            new Error(
+              "Vous ne pouvez pas supprimer une discussion que vous n'avez pas créé",
+            ),
+          ),
+        );
+
+    //#region entity references
+    if (topic.org) {
+      console.log("deleting org reference to topic", topic.org);
+      await models.Org.updateOne(
+        { _id: topic.org._id },
+        {
+          $pull: { orgTopics: topic._id },
+        },
+      );
+    }
+    // else if (topic.event) {
+    //   console.log("deleting event reference to topic", topic.event);
+    //   await models.Event.updateOne(
+    //     {
+    //       _id: typeof topic.event === "object" ? topic.event._id : topic.event,
+    //     },
+    //     {
+    //       $pull: { eventTopics: topic._id },
+    //     },
+    //   );
+    // }
+    //#endregion
+
+    //#region subscription reference
+    // const subscriptions = await models.Subscription.find({});
+    // let count = 0;
+    // for (const subscription of subscriptions) {
+    //   if (!subscription.topics) continue;
+    //   subscription.topics = subscription.topics.filter((topicSubscription) => {
+    //     if (topicSubscription.topic === null) return false;
+    //     if (equals(topicSubscription.topic._id, topic!._id)) {
+    //       count++;
+    //       return false;
+    //     }
+    //     return true;
+    //   });
+    //   await subscription.save();
+    // }
+    // if (count > 0)
+    //   console.log(count + " subscriptions references to topic deleted");
+    //#endregion
+
+    const { deletedCount } = await models.Topic.deleteOne({ _id: topicId });
+    if (deletedCount !== 1)
+      throw new Error(`La discussion n'a pas pu être supprimée`);
+    res.status(200).json(topic);
+  } catch (error) {
+    res.status(500).json(createEndpointError(error));
+  }
+});
+
 export const config = {
   api: {
     bodyParser: {
