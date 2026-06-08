@@ -472,7 +472,7 @@ export const TopicsListItem = ({
             setIsEdit={setIsEdit}
             topic={topic}
             px={3}
-            pb={3}
+            py={3}
           />
 
           {!isEditing && (

@@ -1,4 +1,4 @@
-import { useToast as useChakraToast, UseToastOptions } from "@chakra-ui/toast";
+import { useToast as useChakraToast, UseToastOptions } from "@chakra-ui/react";
 //import { IToastProps, Toast } from "./Toast";
 
 export function useToast(options?: UseToastOptions) {
@@ -6,7 +6,7 @@ export function useToast(options?: UseToastOptions) {
     duration: options?.duration || 6000,
     isClosable: true,
     position: "top-right",
-    ...options
+    ...options,
     // render: ({ onClose }) => (
     //   <Toast
     //     message={message}

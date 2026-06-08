@@ -63,7 +63,8 @@ export const Nav = ({
     borderStyle: "solid",
     borderWidth: 1,
     color: isDark ? "black" : "white",
-    mr: 3,
+    ml: 1,
+    my: 1,
     px: 5,
     py: 6,
     _hover: { bg: "blue.400", color: "white" },
@@ -78,30 +79,29 @@ export const Nav = ({
               <Tr role="rowheader">
                 <Td border={0} p={0}>
                   <HStack>
-                    <Heading {...headingProps}>
-                      <Link
-                        href="/"
-                        variant={
-                          router.pathname === "/" ? "underline" : undefined
-                        }
-                        shallow
-                      >
-                        <IconButton
-                          aria-label="Accueil"
-                          icon={<FaHome />}
-                          borderRadius={"9999px"}
-                          colorScheme={"red"}
-                          size="lg"
-                        />
-                      </Link>
-                    </Heading>
+                    <Link
+                      href="/"
+                      variant={
+                        router.pathname === "/" ? "underline" : undefined
+                      }
+                      shallow
+                    >
+                      <IconButton
+                        aria-label="Accueil"
+                        icon={<FaHome />}
+                        borderRadius={"9999px"}
+                        colorScheme={"red"}
+                        size="lg"
+                      />
+                    </Link>
+
                     {session && userEmail && (
-                      <Flex
+                      <HStack
+                        spacing={1}
                         bg={isDark ? "gray.700" : "blackAlpha.50"}
                         borderRadius="lg"
                         width={isMobile ? undefined : "auto"}
-                        mb={isMobile ? 1 : 0}
-                        mt={isMobile ? undefined : 3}
+                        p={1}
                       >
                         <Menu>
                           {/* <Tooltip
@@ -137,7 +137,7 @@ export const Nav = ({
                           orgType={EOrgType.NETWORK}
                           session={session}
                           offset={[isMobile ? 80 : 140, 15]}
-                          iconProps={{ ...iconProps, ...{ ml: 3 } }}
+                          iconProps={{ ...iconProps, ...{} }}
                         />
                         <OrgPopover
                           isMobile={isMobile}
@@ -149,9 +149,9 @@ export const Nav = ({
                           isMobile={isMobile}
                           session={session}
                           offset={[isMobile ? -106 : 140, 15]}
-                          iconProps={iconProps}
+                          iconProps={{ ...iconProps, mr: 0 }}
                         />
-                      </Flex>
+                      </HStack>
                     )}
                   </HStack>
                 </Td>

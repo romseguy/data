@@ -24,10 +24,8 @@ export async function getSession(params: {
   if (session?.user) {
     session.user.isAdmin =
       typeof session.user.email === "string" &&
-      typeof process.env.NEXT_PUBLIC_ADMIN_EMAILS === "string"
-        ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(",").includes(
-            session.user.email
-          )
+      typeof process.env.ADMIN_EMAILS === "string"
+        ? process.env.ADMIN_EMAILS.split(",").includes(session.user.email)
         : false;
   }
 

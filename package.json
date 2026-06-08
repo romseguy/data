@@ -29,6 +29,7 @@
     "@charlietango/use-script": "^2.2.0",
     "@choc-ui/chakra-autocomplete": "^4.20.0",
     "@eaboy/clean-console": "^1.0.4",
+    "@emotion/babel-plugin": "^11.13.5",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@googlemaps/markerclustererplus": "^1.2.0",
